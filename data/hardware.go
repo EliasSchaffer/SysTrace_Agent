@@ -5,6 +5,7 @@ type Hardware struct {
 	MEMORY Memory `json:"memory"`
 }
 
+// GetCPU returns the CPU of the hardware.
 func (h Hardware) GetCPU() CPU {
 	return h.CPU
 }
