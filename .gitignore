@@ -1,0 +1,30 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Go binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go build cache
+.cache/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+SysTrace_Agent.exe
+
