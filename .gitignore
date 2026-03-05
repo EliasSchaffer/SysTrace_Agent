@@ -2,6 +2,8 @@
 .env
 .env.local
 .env.*.local
+.env.*
+!.env.example
 
 # Go binaries
 *.exe
@@ -27,4 +29,3 @@ Thumbs.db
 
 # Project specific
 SysTrace_Agent.exe
-

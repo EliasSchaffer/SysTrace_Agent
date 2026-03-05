@@ -1,11 +1,11 @@
 package data
 
 type CPU struct {
-	Usage   float64
-	Cores   int
-	Threads int
-	Temp    float64
-	Model   string
+	Usage   float64 `json:"usage"`
+	Cores   int     `json:"cores"`
+	Threads int     `json:"threads"`
+	Temp    float64 `json:"temp"`
+	Model   string  `json:"model"`
 }
 
 // Getter-Methoden

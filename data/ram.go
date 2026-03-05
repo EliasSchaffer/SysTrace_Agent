@@ -1,12 +1,12 @@
 package data
 
 type Memory struct {
-	Total       uint64
-	Used        uint64
-	Available   uint64
-	UsedPercent float64
-	Model       string
-	Speed       uint64
+	Total       uint64  `json:"total"`
+	Used        uint64  `json:"used"`
+	Available   uint64  `json:"available"`
+	UsedPercent float64 `json:"usedPercent"`
+	Model       string  `json:"model"`
+	Speed       uint64  `json:"speed"`
 }
 
 func (m Memory) GetTotal() uint64 {

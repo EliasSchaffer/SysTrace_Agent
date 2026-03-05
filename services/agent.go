@@ -14,22 +14,28 @@ import (
 )
 
 type Agent struct {
-	device    data.Device
-	envLoader ENVLoader
+	device          data.Device
+	envLoader       ENVLoader
+	serverConnector ServerConnector
 }
 
 func (a *Agent) StartAgent() {
 	fmt.Println("Agent gestartet...")
+
+	a.serverConnector = *NewServerConnector()
+	if !a.serverConnector.TestConnection() {
+		fmt.Println("No connection to master server. Please check the URL and try again.")
+		return
+	}
+
 	a.envLoader = ENVLoader{}
-
-	a.collectDeviceInfo()
-
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
 	for range ticker.C {
 		a.CollectData()
 		a.printStats()
+		go a.serverConnector.SendDataToMasterServer(json.Marshal(a.device))
 	}
 }
 

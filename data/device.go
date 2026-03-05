@@ -1,11 +1,11 @@
 package data
 
 type Device struct {
-	ID       string
-	OS       string
-	Hostname string
-	Hardware Hardware
-	GPS      GPS
+	ID       string   `json:"id"`
+	OS       string   `json:"os"`
+	Hostname string   `json:"hostname"`
+	Hardware Hardware `json:"hardware"`
+	GPS      GPS      `json:"gps"`
 }
 
 // Getter-Methoden

@@ -1,13 +1,13 @@
 package data
 
 type GPS struct {
-	Latitude  float64
-	Longitude float64
-	Altitude  float64
-	Accuracy  float64
-	City      string
-	Country   string
-	Region    string
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Altitude  float64 `json:"altitude"`
+	Accuracy  float64 `json:"accuracy"`
+	City      string  `json:"city"`
+	Country   string  `json:"country"`
+	Region    string  `json:"region"`
 }
 
 func (g *GPS) GetLatitude() float64 {
