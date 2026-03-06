@@ -52,6 +52,7 @@ func (a *Agent) printStats() {
 	fmt.Println("=====================================")
 }
 
+// CollectData gathers device and GPS information.
 func (a *Agent) CollectData() {
 	a.collectDeviceInfo()
 	a.CollectGPSData()
