@@ -9,6 +9,7 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 )
 
+// collectDeviceInfo gathers and sets device information from the host.
 func (a *Agent) collectDeviceInfo() {
 	hostInfo, _ := host.Info()
 
@@ -18,6 +19,7 @@ func (a *Agent) collectDeviceInfo() {
 	a.collectHardwareData()
 }
 
+// collectHardwareData collects CPU and memory information and sets it to the device's hardware.
 func (a *Agent) collectHardwareData() {
 	cpuData := a.getCPUInfo()
 	memData := a.getMemoryInfo()
@@ -29,6 +31,7 @@ func (a *Agent) collectHardwareData() {
 	a.device.SetHardware(hardware)
 }
 
+// getCPUInfo retrieves the CPU usage, model, core count, and thread count.
 func (a *Agent) getCPUInfo() data.CPU {
 	cpuPercent, _ := cpu.Percent(time.Second, false)
 	cpuInfo, _ := cpu.Info()
@@ -48,6 +51,7 @@ func (a *Agent) getCPUInfo() data.CPU {
 	return cpuData
 }
 
+// getMemoryInfo retrieves memory statistics and returns them as a data.Memory object.
 func (a *Agent) getMemoryInfo() data.Memory {
 	memData := data.Memory{}
 	memStats, _ := mem.VirtualMemory()
