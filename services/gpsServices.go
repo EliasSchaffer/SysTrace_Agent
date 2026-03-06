@@ -27,6 +27,13 @@ func (a *Agent) CollectGPSData() {
 	}
 }
 
+// GetGPSDataByIP retrieves GPS data based on the agent's IP address.
+//
+// It constructs a URL using the GeoLocation API key, makes an HTTP GET request to fetch the GPS data,
+// and decodes the JSON response into a map. The function extracts city, region, country, latitude, and
+// longitude from the response and sets them in a data.GPS struct. If any errors occur during the HTTP
+// request or JSON decoding, it logs the error and returns nil. The function returns a pointer to the
+// populated data.GPS struct or nil if an error occurred.
 func (a *Agent) GetGPSDataByIP() *data.GPS {
 	apiKey := a.envLoader.GetGeoLocationAPIKey()
 	url := fmt.Sprintf("https://api.ipgeolocation.io/ipgeo?apiKey=%s", apiKey)
@@ -86,6 +93,7 @@ func getGpsHelperPath() string {
 	return filepath.Join(strings.TrimSpace(string(out)), "gpshelper.exe")
 }
 
+// GetGPSDataByLocationAPI retrieves GPS data using a helper application.
 func (a *Agent) GetGPSDataByLocationAPI() *data.GPS {
 	gpsHelperPath := getGpsHelperPath()
 	if gpsHelperPath == "" {
