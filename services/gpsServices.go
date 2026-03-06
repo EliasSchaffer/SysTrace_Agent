@@ -86,6 +86,7 @@ func getGpsHelperPath() string {
 	return filepath.Join(strings.TrimSpace(string(out)), "gpshelper.exe")
 }
 
+// GetGPSDataByLocationAPI retrieves GPS data using a helper application.
 func (a *Agent) GetGPSDataByLocationAPI() *data.GPS {
 	gpsHelperPath := getGpsHelperPath()
 	if gpsHelperPath == "" {
