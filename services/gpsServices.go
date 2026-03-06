@@ -106,9 +106,54 @@ func (a *Agent) GetGPSDataByLocationAPI() *data.GPS {
 		return nil
 	}
 
-	//	if err = enrichGPSData(gps); err != nil {
-	//		fmt.Printf("Warning: Could not enrich GPS data: %v\n", err)
-	//	}
+	enrichGPSData(gps)
 
 	return gps
+}
+
+func enrichGPSData(gps *data.GPS) {
+	url := fmt.Sprintf("https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=%f&lon=%f",
+		gps.GetLatitude(), gps.GetLongitude())
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		fmt.Printf("Error creating request: %v\n", err)
+		return
+	}
+	req.Header.Set("User-Agent", "SysTrace-Agent/1.0 (Windows)")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("Error fetching enriched GPS data: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	var geoResult struct {
+		Address struct {
+			City    string `json:"city"`
+			Town    string `json:"town"`
+			Village string `json:"village"`
+			State   string `json:"state"`
+			Country string `json:"country"`
+		} `json:"address"`
+	}
+
+	if err = json.NewDecoder(resp.Body).Decode(&geoResult); err != nil {
+		fmt.Printf("Error decoding enriched GPS data: %v\n", err)
+		return
+	}
+
+	city := geoResult.Address.City
+	if city == "" {
+		city = geoResult.Address.Town
+	}
+	if city == "" {
+		city = geoResult.Address.Village
+	}
+
+	gps.SetCity(city)
+	gps.SetCountry(geoResult.Address.Country)
+	gps.SetRegion(geoResult.Address.State)
 }
