@@ -30,11 +30,13 @@ func (d *Device) GetGPS() *GPS {
 	return &d.GPS
 }
 
+// GetIP returns the IP address of the device.
 func (d Device) GetIP() string {
 	return d.IP
 
 }
 
+// SetID sets the ID of the Device.
 func (d *Device) SetID(id string) {
 	d.ID = id
 }
@@ -55,6 +57,7 @@ func (d *Device) SetGPS(gps GPS) {
 	d.GPS = gps
 }
 
+// SetIP sets the IP address of the device.
 func (d *Device) SetIP(ip string) {
 	d.IP = ip
 

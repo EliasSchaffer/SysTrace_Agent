@@ -33,6 +33,7 @@ func (a *Agent) collectIPAddress() string {
 
 }
 
+// collectHardwareData collects CPU and memory information and sets the hardware data for the agent's device.
 func (a *Agent) collectHardwareData() {
 	cpuData := a.getCPUInfo()
 	memData := a.getMemoryInfo()
