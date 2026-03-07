@@ -2,6 +2,7 @@ package services
 
 import (
 	"SysTrace_Agent/data"
+	"net"
 	"time"
 
 	"github.com/shirou/gopsutil/v3/cpu"
@@ -15,7 +16,21 @@ func (a *Agent) collectDeviceInfo() {
 	a.device.SetHostname(hostInfo.Hostname)
 	a.device.SetOS(hostInfo.OS + " " + hostInfo.Platform + " " + hostInfo.PlatformVersion)
 	a.device.SetID(hostInfo.HostID)
+	a.device.SetIP(a.collectIPAddress())
 	a.collectHardwareData()
+}
+
+func (a *Agent) collectIPAddress() string {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.String()
+
 }
 
 func (a *Agent) collectHardwareData() {

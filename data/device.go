@@ -6,6 +6,7 @@ type Device struct {
 	Hostname string   `json:"hostname"`
 	Hardware Hardware `json:"hardware"`
 	GPS      GPS      `json:"gps"`
+	IP       string   `json:"ip"`
 }
 
 // Getter-Methoden
@@ -29,6 +30,11 @@ func (d *Device) GetGPS() *GPS {
 	return &d.GPS
 }
 
+func (d Device) GetIP() string {
+	return d.IP
+
+}
+
 func (d *Device) SetID(id string) {
 	d.ID = id
 }
@@ -47,4 +53,9 @@ func (d *Device) SetHardware(hardware Hardware) {
 
 func (d *Device) SetGPS(gps GPS) {
 	d.GPS = gps
+}
+
+func (d *Device) SetIP(ip string) {
+	d.IP = ip
+
 }

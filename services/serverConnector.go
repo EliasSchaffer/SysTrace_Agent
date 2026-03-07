@@ -20,7 +20,7 @@ func NewServerConnector() *ServerConnector {
 }
 
 func (s *ServerConnector) TestConnection() bool {
-	resp, err := http.Get(s.masterServerURL + "/status")
+	resp, err := http.Get(s.masterServerURL + "/api/status")
 	if err != nil {
 		fmt.Println("Connection error:", err)
 		return false
