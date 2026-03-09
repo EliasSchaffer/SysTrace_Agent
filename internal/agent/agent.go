@@ -1,7 +1,8 @@
-package services
+package agent
 
 import (
-	"SysTrace_Agent/data"
+	"SysTrace_Agent/internal/data"
+	"SysTrace_Agent/internal/transport"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -9,20 +10,20 @@ import (
 
 type Agent struct {
 	device          data.Device
-	envLoader       ENVLoader
-	serverConnector ServerConnector
+	envLoader       transport.ENVLoader
+	serverConnector transport.ServerConnector
 }
 
 func (a *Agent) StartAgent() {
 	fmt.Println("Agent gestartet...")
 
-	a.serverConnector = *NewServerConnector()
+	a.serverConnector = *transport.NewServerConnector()
 	if !a.serverConnector.TestConnection() {
 		fmt.Println("No connection to master server. Please check the URL and try again.")
 		return
 	}
 
-	a.envLoader = ENVLoader{}
+	a.envLoader = transport.ENVLoader{}
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 

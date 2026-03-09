@@ -9,6 +9,10 @@ type Memory struct {
 	Speed       uint64  `json:"speed"`
 }
 
+func (m Memory) Metricname() string {
+	return "memory"
+}
+
 func (m Memory) GetTotal() uint64 {
 	return m.Total
 }

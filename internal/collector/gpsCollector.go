@@ -1,7 +1,8 @@
-package services
+package collector
 
 import (
-	"SysTrace_Agent/data"
+	"SysTrace_Agent/internal/data"
+	"SysTrace_Agent/internal/transport"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,24 +12,29 @@ import (
 	"strings"
 )
 
-func (a *Agent) CollectGPSData() {
-	gpsData := a.GetGPSDataByLocationAPI()
+type GPSCollector struct {
+}
+
+func (G GPSCollector) Collect() data.Data {
+	gpsData := GetGPSDataByLocationAPI()
 	if gpsData != nil {
-		a.device.SetGPS(*gpsData)
+		return gpsData
 	} else {
 		fmt.Println("Failed to get GPS data from Location API, trying IP-based geolocation...")
-		gpsData = a.GetGPSDataByIP()
+		gpsData = GetGPSDataByIP()
 		if gpsData != nil {
 			fmt.Println("")
-			a.device.SetGPS(*gpsData)
+			return gpsData
 		} else {
 			fmt.Println("Failed to get GPS data from both methods.")
 		}
 	}
+	return nil
 }
 
-func (a *Agent) GetGPSDataByIP() *data.GPS {
-	apiKey := a.envLoader.GetGeoLocationAPIKey()
+func GetGPSDataByIP() *data.GPS {
+	envLoader := transport.ENVLoader{}
+	apiKey := envLoader.GetGeoLocationAPIKey()
 	url := fmt.Sprintf("https://api.ipgeolocation.io/ipgeo?apiKey=%s", apiKey)
 
 	resp, err := http.Get(url)
@@ -86,7 +92,7 @@ func getGpsHelperPath() string {
 	return filepath.Join(strings.TrimSpace(string(out)), "gpshelper.exe")
 }
 
-func (a *Agent) GetGPSDataByLocationAPI() *data.GPS {
+func GetGPSDataByLocationAPI() *data.GPS {
 	gpsHelperPath := getGpsHelperPath()
 	if gpsHelperPath == "" {
 		fmt.Println("Error: GpsHelper App nicht installiert!")

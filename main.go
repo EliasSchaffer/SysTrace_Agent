@@ -1,7 +1,7 @@
 package main
 
 import (
-	"SysTrace_Agent/services"
+	"SysTrace_Agent/internal/agent"
 	"fmt"
 	"time"
 
@@ -17,6 +17,6 @@ func main() {
 	fmt.Println("CPU:", cpuPercent[0], "%")
 	fmt.Println("RAM:", memStats.UsedPercent, "%")
 
-	a := services.Agent{}
+	a := agent.Agent{}
 	a.StartAgent()
 }

@@ -10,6 +10,10 @@ type GPS struct {
 	Region    string  `json:"region"`
 }
 
+func (g GPS) Metricname() string {
+	return "gps"
+}
+
 func (g *GPS) GetLatitude() float64 {
 	return g.Latitude
 }

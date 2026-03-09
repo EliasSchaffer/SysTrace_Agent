@@ -9,7 +9,10 @@ type Device struct {
 	IP       string   `json:"ip"`
 }
 
-// Getter-Methoden
+func (d Device) Metricname() string {
+	return "device"
+}
+
 func (d Device) GetID() string {
 	return d.ID
 }

@@ -5,6 +5,10 @@ type Hardware struct {
 	MEMORY Memory `json:"memory"`
 }
 
+func (h Hardware) Metricname() string {
+	return "hardware"
+}
+
 func (h Hardware) GetCPU() CPU {
 	return h.CPU
 }

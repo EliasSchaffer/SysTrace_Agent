@@ -8,7 +8,10 @@ type CPU struct {
 	Model   string  `json:"model"`
 }
 
-// Getter-Methoden
+func (c CPU) Metricname() string {
+	return "cpu"
+}
+
 func (c CPU) GetUsage() float64 {
 	return c.Usage
 }
@@ -29,7 +32,6 @@ func (c CPU) GetModel() string {
 	return c.Model
 }
 
-// Setter-Methoden
 func (c *CPU) SetUsage(usage float64) {
 	c.Usage = usage
 }
