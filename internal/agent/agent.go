@@ -36,7 +36,11 @@ func (a *Agent) StartAgent() {
 
 	for range ticker.C {
 		a.CollectData()
-		payload, err := json.Marshal(a.device)
+		wsEvent := data.WSEvent{
+			Type:   "update",
+			Device: a.device,
+		}
+		payload, err := json.Marshal(wsEvent)
 		if err != nil {
 			fmt.Println("Error marshaling data:", err)
 			continue
