@@ -41,7 +41,7 @@ func collectHardwareData(device *data.Device) *data.Device {
 	if !ok {
 		panic("Failed to collect CPU data")
 	}
-	memData := HardwareCollector{}.Collect()
+	memData := MemoryCollector{}.Collect()
 	memory, ok := memData.(data.Memory)
 	if !ok {
 		panic("Failed to collect Memory data")

@@ -18,13 +18,13 @@ type GPSCollector struct {
 func (G GPSCollector) Collect() data.Data {
 	gpsData := GetGPSDataByLocationAPI()
 	if gpsData != nil {
-		return gpsData
+		return *gpsData
 	} else {
 		fmt.Println("Failed to get GPS data from Location API, trying IP-based geolocation...")
 		gpsData = GetGPSDataByIP()
 		if gpsData != nil {
 			fmt.Println("")
-			return gpsData
+			return *gpsData
 		} else {
 			fmt.Println("Failed to get GPS data from both methods.")
 		}

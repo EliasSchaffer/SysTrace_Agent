@@ -1,8 +1,10 @@
 package agent
 
 import (
+	"SysTrace_Agent/internal/collector"
 	"SysTrace_Agent/internal/data"
 	"SysTrace_Agent/internal/transport"
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -10,27 +12,39 @@ import (
 
 type Agent struct {
 	device          data.Device
-	envLoader       transport.ENVLoader
 	serverConnector transport.ServerConnector
 }
 
 func (a *Agent) StartAgent() {
-	fmt.Println("Agent gestartet...")
+	fmt.Println("Agent started...")
 
 	a.serverConnector = *transport.NewServerConnector()
-	if !a.serverConnector.TestConnection() {
-		fmt.Println("No connection to master server. Please check the URL and try again.")
+
+	if err := a.serverConnector.Connect(context.Background()); err != nil {
+		fmt.Println("Failed to connect to master server:", err)
 		return
 	}
 
-	a.envLoader = transport.ENVLoader{}
+	defer a.serverConnector.Close()
+
+	go a.serverConnector.ReadLoop(func(messageType int, msg []byte) {
+		fmt.Printf("Received message from master server: %s\n", string(msg))
+	})
+
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
 	for range ticker.C {
 		a.CollectData()
-		a.printStats()
-		go a.serverConnector.SendDataToMasterServer(json.Marshal(a.device))
+		payload, err := json.Marshal(a.device)
+		if err != nil {
+			fmt.Println("Error marshaling data:", err)
+			continue
+		}
+		if err := a.serverConnector.Send(payload); err != nil {
+			fmt.Println("Error sending data to master server:", err)
+		}
+
 	}
 }
 
@@ -54,6 +68,14 @@ func (a *Agent) printStats() {
 }
 
 func (a *Agent) CollectData() {
-	a.collectDeviceInfo()
-	a.CollectGPSData()
+	device, ok := collector.HardwareCollector{}.Collect().(data.Device)
+	if !ok {
+		panic("Failed to collect hardware data")
+	}
+	a.device = device
+	gpsdata, ok := collector.GPSCollector{}.Collect().(data.GPS)
+	if !ok {
+		panic("Failed to collect GPS data")
+	}
+	a.device.SetGPS(gpsdata)
 }
