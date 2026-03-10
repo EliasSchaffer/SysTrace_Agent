@@ -1,7 +1,9 @@
 package transport
 
 import (
+	"SysTrace_Agent/internal/data"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -14,19 +16,19 @@ import (
 
 type ServerConnector struct {
 	masterServerURL string
-	wsURL           string
+	clientID        string
 
 	conn    *websocket.Conn
 	writeMu sync.Mutex
 }
 
-func NewServerConnector() *ServerConnector {
+func NewServerConnector(clientID string) *ServerConnector {
 	envLoader := ENVLoader{}
 	masterServerURL := envLoader.GetMasterServerURL()
 
 	return &ServerConnector{
 		masterServerURL: masterServerURL,
-		wsURL:           toWSURL(masterServerURL),
+		clientID:        clientID,
 	}
 }
 
@@ -39,15 +41,14 @@ func (s *ServerConnector) TestConnection(ctx context.Context) bool {
 	return true
 }
 
-func toWSURL(raw string) string {
+func toWSURL(raw, clientID string) string {
 	raw = strings.TrimRight(raw, "/")
 	u, err := url.Parse(raw)
 	if err != nil || u.Scheme == "" {
-		// Fallback, falls nur host:port in .env steht
-		if strings.HasPrefix(raw, "ws://") || strings.HasPrefix(raw, "wss://") {
-			return raw
+		if !strings.HasPrefix(raw, "ws://") && !strings.HasPrefix(raw, "wss://") {
+			raw = "ws://" + raw
 		}
-		return "ws://" + raw
+		u, _ = url.Parse(raw)
 	}
 
 	switch u.Scheme {
@@ -56,15 +57,23 @@ func toWSURL(raw string) string {
 	case "https":
 		u.Scheme = "wss"
 	}
+
+	u.Path = "/ws"
+	q := u.Query()
+	q.Set("clientId", clientID)
+	u.RawQuery = q.Encode()
+
 	return u.String()
 }
 
 func (s *ServerConnector) Connect(ctx context.Context) error {
+	wsURL := toWSURL(s.masterServerURL, s.clientID)
+
 	dialer := websocket.Dialer{
 		HandshakeTimeout: 10 * time.Second,
 	}
 
-	conn, resp, err := dialer.DialContext(ctx, s.wsURL, nil)
+	conn, resp, err := dialer.DialContext(ctx, wsURL, nil)
 	if err != nil {
 		if resp != nil {
 			return fmt.Errorf("ws connection failed with status %d: %v", resp.StatusCode, err)
@@ -73,7 +82,7 @@ func (s *ServerConnector) Connect(ctx context.Context) error {
 	}
 
 	s.conn = conn
-	fmt.Println("WebSocket connection established with master server")
+	fmt.Printf("WebSocket connection established with master server (ClientID: %s)\n", s.clientID)
 	return nil
 }
 
@@ -92,35 +101,45 @@ func (s *ServerConnector) Send(data []byte) error {
 	return nil
 }
 
-func (s *ServerConnector) ReadLoop(onMessage func(messageType int, payload []byte)) {
+func (s *ServerConnector) ReadLoop(onResponse func(resp data.WSResponse)) {
 	if s.conn == nil {
 		return
 	}
+
 	for {
 		mt, msg, err := s.conn.ReadMessage()
 		if err != nil {
 			fmt.Println("Read error:", err)
 			return
 		}
-		if onMessage != nil {
-			onMessage(mt, msg)
+		if mt != websocket.TextMessage {
+			continue
 		}
 
+		var resp data.WSResponse
+		if err := json.Unmarshal(msg, &resp); err != nil {
+			fmt.Println("Invalid WSResponse:", err, "raw:", string(msg))
+			continue
+		}
+
+		if onResponse != nil {
+			onResponse(resp)
+		}
 	}
 }
 
 func (s *ServerConnector) Close() error {
-	if s.conn != nil {
-		return s.conn.Close()
+	if s.conn == nil {
+		return nil
 	}
 
-	err := s.conn.WriteControl(
+	_ = s.conn.WriteControl(
 		websocket.CloseMessage,
 		websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""),
 		time.Now().Add(2*time.Second),
 	)
-	_ = err
-	cErr := s.conn.Close()
+
+	err := s.conn.Close()
 	s.conn = nil
-	return cErr
+	return err
 }
