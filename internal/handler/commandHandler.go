@@ -16,11 +16,9 @@ func HandleCommand(command string) {
 		println("Shutting down the system...")
 		showMessageBox("shutdown", shutdown)
 	case "restart":
-		println("Restarting the system...")
-		restart()
+		showMessageBox("restart", restart)
 	case "sleep":
-		println("Putting the system to sleep...")
-		sleep()
+		showMessageBox("sleep", sleep)
 	default:
 		println("Unknown command:", command)
 
