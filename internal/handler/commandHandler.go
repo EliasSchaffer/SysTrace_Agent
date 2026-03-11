@@ -14,11 +14,11 @@ func HandleCommand(command string) {
 	switch command {
 	case "shutdown":
 		println("Shutting down the system...")
-		showMessageBox("shutdown", shutdown)
+		showCoutdownMessageBox("shutdown", shutdown)
 	case "restart":
-		showMessageBox("restart", restart)
+		showCoutdownMessageBox("restart", restart)
 	case "sleep":
-		showMessageBox("sleep", sleep)
+		showCoutdownMessageBox("sleep", sleep)
 	default:
 		println("Unknown command:", command)
 
@@ -53,7 +53,7 @@ func runHeadlessCountdown(message string, action func()) {
 	action()
 }
 
-func showMessageBox(message string, action func()) {
+func showCoutdownMessageBox(message string, action func()) {
 	var mw *walk.MainWindow
 	var label *walk.Label
 	var once sync.Once

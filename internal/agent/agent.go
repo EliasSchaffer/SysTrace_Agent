@@ -38,7 +38,6 @@ func (a *Agent) StartAgent() {
 
 	defer a.serverConnector.Close()
 
-	// Commands from the socket loop are executed on this goroutine to keep UI calls thread-safe.
 	commandQueue := make(chan string, 16)
 
 	go a.serverConnector.ReadLoop(func(response data.WSResponse) {
@@ -96,6 +95,25 @@ func (a *Agent) StartAgent() {
 			}
 		}
 	}
+}
+
+func (a *Agent) StopAgent() {
+	fmt.Println("Agent stopped.")
+	a.serverConnector.Close()
+
+}
+
+func (a *Agent) SetNewMasterServer(url string) {
+	a.serverConnector.Close()
+	a.serverConnector.SetMasterServerURL(url)
+	err := a.serverConnector.Connect(context.Background())
+	if err != nil {
+		fmt.Println("Failed to connect to new master server:", err)
+	} else {
+		fmt.Println("Successfully connected to new master server:", url)
+	}
+	envLoader := transport.ENVLoader{}
+	envLoader.SetMasterServerURL(url)
 }
 
 func (a *Agent) printStats() {

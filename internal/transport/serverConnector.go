@@ -143,3 +143,7 @@ func (s *ServerConnector) Close() error {
 	s.conn = nil
 	return err
 }
+
+func (s *ServerConnector) SetMasterServerURL(url string) {
+	s.masterServerURL = url
+}
