@@ -101,6 +101,9 @@ func (a *Agent) StartAgent() {
 
 				if reconnected {
 					fmt.Println("Reconnected successfully!")
+					go a.serverConnector.ReadLoop(func(response data.WSResponse) {
+						a.handleServerMessage(response, queue)
+					})
 				} else {
 					fmt.Println("Failed to reconnect after 15 attempts. Giving up.")
 					return
