@@ -1,0 +1,41 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "gpshelper/1.0.0": {
+        "dependencies": {
+          "CoordinateSharp": "3.1.1.1"
+        },
+        "runtime": {
+          "gpshelper.dll": {}
+        }
+      },
+      "CoordinateSharp/3.1.1.1": {
+        "runtime": {
+          "lib/net9.0/CoordinateSharp.dll": {
+            "assemblyVersion": "3.1.1.1",
+            "fileVersion": "3.1.1.1"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "gpshelper/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "CoordinateSharp/3.1.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-R7VFs0t/2CpAX1jitw+PGGeGfHqx9rqrCNTPDVfXmhsR9bJ++SNYoOX9ut2cfteMhEWU+qrurIt47Q2RxdGkLg==",
+      "path": "coordinatesharp/3.1.1.1",
+      "hashPath": "coordinatesharp.3.1.1.1.nupkg.sha512"
+    }
+  }
+}

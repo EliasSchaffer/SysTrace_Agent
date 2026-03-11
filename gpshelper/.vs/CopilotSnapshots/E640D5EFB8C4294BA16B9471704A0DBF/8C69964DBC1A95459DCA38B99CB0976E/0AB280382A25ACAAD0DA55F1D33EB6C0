@@ -1,0 +1,50 @@
+﻿using System;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Windows.Devices.Geolocation;
+
+class Program
+{
+    static async Task Main()
+    {
+        var geolocator = new Geolocator();
+
+        double latitude = 0, longitude = 0, altitude = 0, accuracy = 0;
+
+        try
+        {
+            var accessStatus = await Geolocator.RequestAccessAsync();
+
+            if (accessStatus != GeolocationAccessStatus.Allowed)
+            {
+                Console.Error.WriteLine($"Location access denied: {accessStatus}");
+                Console.Error.WriteLine("Please enable location access in Windows Settings > Privacy > Location");
+            }
+            else
+            {
+                var position = await geolocator.GetGeopositionAsync(
+                    maximumAge: TimeSpan.FromMinutes(5),
+                    timeout: TimeSpan.FromSeconds(10));
+
+                latitude = position.Coordinate.Point.Position.Latitude;
+                longitude = position.Coordinate.Point.Position.Longitude;
+                altitude = position.Coordinate.Point.Position.Altitude;
+                accuracy = position.Coordinate.Accuracy;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error getting location: {ex.Message}");
+        }
+
+        var gps = new
+        {
+            latitude = latitude,
+            longitude = longitude,
+            altitude = altitude,
+            accuracy = accuracy
+        };
+
+        Console.WriteLine(JsonSerializer.Serialize(gps));
+    }
+}

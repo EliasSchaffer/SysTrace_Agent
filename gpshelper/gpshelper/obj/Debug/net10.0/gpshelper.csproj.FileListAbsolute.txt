@@ -1,0 +1,17 @@
+C:\Users\Elias\source\repos\gpshelper\gpshelper\obj\Debug\net10.0\gpshelper.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Elias\source\repos\gpshelper\gpshelper\obj\Debug\net10.0\gpshelper.AssemblyInfoInputs.cache
+C:\Users\Elias\source\repos\gpshelper\gpshelper\obj\Debug\net10.0\gpshelper.AssemblyInfo.cs
+C:\Users\Elias\source\repos\gpshelper\gpshelper\obj\Debug\net10.0\gpshelper.csproj.CoreCompileInputs.cache
+C:\Users\Elias\source\repos\gpshelper\gpshelper\bin\Debug\net10.0\gpshelper.exe
+C:\Users\Elias\source\repos\gpshelper\gpshelper\bin\Debug\net10.0\gpshelper.deps.json
+C:\Users\Elias\source\repos\gpshelper\gpshelper\bin\Debug\net10.0\gpshelper.runtimeconfig.json
+C:\Users\Elias\source\repos\gpshelper\gpshelper\bin\Debug\net10.0\gpshelper.dll
+C:\Users\Elias\source\repos\gpshelper\gpshelper\bin\Debug\net10.0\gpshelper.pdb
+C:\Users\Elias\source\repos\gpshelper\gpshelper\bin\Debug\net10.0\CoordinateSharp.dll
+C:\Users\Elias\source\repos\gpshelper\gpshelper\obj\Debug\net10.0\gpshelper.csproj.AssemblyReference.cache
+C:\Users\Elias\source\repos\gpshelper\gpshelper\obj\Debug\net10.0\gpshelper.csproj.Up2Date
+C:\Users\Elias\source\repos\gpshelper\gpshelper\obj\Debug\net10.0\gpshelper.dll
+C:\Users\Elias\source\repos\gpshelper\gpshelper\obj\Debug\net10.0\refint\gpshelper.dll
+C:\Users\Elias\source\repos\gpshelper\gpshelper\obj\Debug\net10.0\gpshelper.pdb
+C:\Users\Elias\source\repos\gpshelper\gpshelper\obj\Debug\net10.0\gpshelper.genruntimeconfig.cache
+C:\Users\Elias\source\repos\gpshelper\gpshelper\obj\Debug\net10.0\ref\gpshelper.dll

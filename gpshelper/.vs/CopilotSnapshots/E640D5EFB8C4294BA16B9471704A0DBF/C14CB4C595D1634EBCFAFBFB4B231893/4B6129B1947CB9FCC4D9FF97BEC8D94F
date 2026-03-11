@@ -1,0 +1,33 @@
+﻿using System;
+using System.Device.Location;
+using System.Text.Json;
+using System.Threading;
+
+class Program
+{
+    static void Main()
+    {
+        GeoCoordinateWatcher watcher = new GeoCoordinateWatcher();
+        watcher.Start();
+
+        int attempts = 0;
+        while ((double.IsNaN(watcher.Position.Location.Latitude) ||
+                double.IsNaN(watcher.Position.Location.Longitude)) && attempts < 20)
+        {
+            Thread.Sleep(500);
+            attempts++;
+        }
+
+        var loc = watcher.Position.Location;
+
+        var gps = new
+        {
+            latitude = double.IsNaN(loc.Latitude) ? 0 : loc.Latitude,
+            longitude = double.IsNaN(loc.Longitude) ? 0 : loc.Longitude,
+            altitude = double.IsNaN(loc.Altitude) ? 0 : loc.Altitude,
+            accuracy = double.IsNaN(loc.HorizontalAccuracy) ? 0 : loc.HorizontalAccuracy
+        };
+
+        Console.WriteLine(JsonSerializer.Serialize(gps));
+    }
+}

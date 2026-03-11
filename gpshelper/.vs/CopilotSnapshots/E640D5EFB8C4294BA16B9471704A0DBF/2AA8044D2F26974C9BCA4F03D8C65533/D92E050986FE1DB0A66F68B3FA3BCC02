@@ -1,0 +1,51 @@
+﻿using System;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        double latitude = 0, longitude = 0, altitude = 0, accuracy = 0;
+
+        try
+        {
+            Console.Error.WriteLine("Getting location via IP geolocation...");
+
+            using var client = new HttpClient();
+            client.Timeout = TimeSpan.FromSeconds(10);
+
+            // Using ip-api.com free geolocation service
+            var response = await client.GetStringAsync("http://ip-api.com/json/?fields=status,message,lat,lon,query");
+            var locationData = JsonSerializer.Deserialize<JsonElement>(response);
+
+            if (locationData.GetProperty("status").GetString() == "success")
+            {
+                latitude = locationData.GetProperty("lat").GetDouble();
+                longitude = locationData.GetProperty("lon").GetDouble();
+                accuracy = 5000; // IP-based location has ~5km accuracy
+
+                Console.Error.WriteLine($"Location retrieved successfully from IP: {locationData.GetProperty("query").GetString()}");
+            }
+            else
+            {
+                Console.Error.WriteLine($"Failed to get location: {locationData.GetProperty("message").GetString()}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error getting location: {ex.Message}");
+        }
+
+        var gps = new
+        {
+            latitude = latitude,
+            longitude = longitude,
+            altitude = altitude,
+            accuracy = accuracy
+        };
+
+        Console.WriteLine(JsonSerializer.Serialize(gps));
+    }
+}
