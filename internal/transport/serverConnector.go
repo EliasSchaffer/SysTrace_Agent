@@ -32,6 +32,13 @@ func NewServerConnector(clientID string) *ServerConnector {
 	}
 }
 
+func NewServerConnectorWithID(clientID string, masterServerURL string) *ServerConnector {
+	return &ServerConnector{
+		masterServerURL: masterServerURL,
+		clientID:        clientID,
+	}
+}
+
 func (s *ServerConnector) TestConnection(ctx context.Context) bool {
 	if err := s.Connect(ctx); err != nil {
 		fmt.Println("Connection test failed:", err)
@@ -146,4 +153,12 @@ func (s *ServerConnector) Close() error {
 
 func (s *ServerConnector) SetMasterServerURL(url string) {
 	s.masterServerURL = url
+}
+
+func (s *ServerConnector) MasterServerURL() string {
+	return s.masterServerURL
+}
+
+func (s *ServerConnector) ClientID() string {
+	return s.clientID
 }

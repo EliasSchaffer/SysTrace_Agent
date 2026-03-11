@@ -37,11 +37,10 @@ func (a *Agent) StartAgent() {
 	}
 
 	defer a.serverConnector.Close()
-
-	commandQueue := make(chan string, 16)
+	queue := make(chan data.WSResponse, 16)
 
 	go a.serverConnector.ReadLoop(func(response data.WSResponse) {
-		a.handleServerMessage(response, commandQueue)
+		a.handleServerMessage(response, queue)
 	})
 
 	ticker := time.NewTicker(5 * time.Second)
@@ -49,8 +48,22 @@ func (a *Agent) StartAgent() {
 
 	for {
 		select {
-		case cmd := <-commandQueue:
-			handler.HandleCommand(cmd)
+		case cmd := <-queue:
+			fmt.Printf("Dispatching message type: %s\n", cmd.Type)
+			switch cmd.Type {
+			case "test":
+				if err := beeep.Alert(cmd.Message, "Test", "Test"); err != nil {
+					fmt.Println("Failed to show alert:", err)
+				}
+			case "command":
+				handler.HandleCommand(cmd.Message)
+			case "config":
+				handler.HandleConfig(cmd, &a.serverConnector)
+			case "error":
+				//TODO: Implement error handling logic
+			default:
+				fmt.Printf("Unknown message type: %s, Message: %s\n", cmd.Type, cmd.Message)
+			}
 		case <-ticker.C:
 			a.CollectData()
 			wsEvent := data.WSEvent{
@@ -148,25 +161,11 @@ func (a *Agent) CollectData() {
 	a.device.SetGPS(gpsdata)
 }
 
-func (a *Agent) handleServerMessage(response data.WSResponse, commandQueue chan<- string) {
-	fmt.Printf("Received message - Type: %s, Status: %s\n", response.Type, response.Status)
-
-	switch response.Type {
-	case "test":
-		if err := beeep.Alert(response.Message, "Test", "Test"); err != nil {
-			fmt.Println("Failed to show alert:", err)
-		}
-	case "command":
-		select {
-		case commandQueue <- response.Message:
-		default:
-			fmt.Println("Command queue is full, dropping command:", response.Message)
-		}
-	case "config":
-		//TODO: Implement config handling logic
-	case "error":
-		//TODO: Implement error handling logic
+func (a *Agent) handleServerMessage(response data.WSResponse, queue chan<- data.WSResponse) {
+	fmt.Printf("Received message - Type: %s, Message: %s\n", response.Type, response.Message)
+	select {
+	case queue <- response:
 	default:
-		fmt.Printf("Unknown message type: %s, Message: %s\n", response.Type, response.Message)
+		fmt.Printf("Incoming queue full, dropping message type=%s message=%s\n", response.Type, response.Message)
 	}
 }

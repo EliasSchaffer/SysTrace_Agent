@@ -1,8 +1,7 @@
 package data
 
 type WSResponse struct {
-	Type    string                 `json:"type"`
-	Status  string                 `json:"status,omitempty"`
-	Message string                 `json:"message,omitempty"`
-	Payload map[string]interface{} `json:"payload,omitempty"`
+	Type    string `json:"type"`
+	Message string `json:"message,omitempty"`
+	Payload string `json:"result,omitempty"`
 }
