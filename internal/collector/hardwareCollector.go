@@ -1,7 +1,7 @@
 package collector
 
 import (
-	"SysTrace_Agent/internal/data"
+	"SysTrace_Agent/internal/data/static"
 	"net"
 
 	"github.com/shirou/gopsutil/v3/host"
@@ -10,9 +10,9 @@ import (
 type HardwareCollector struct {
 }
 
-func (h HardwareCollector) Collect() data.Data {
+func (h HardwareCollector) Collect() static.Data {
 	hostInfo, _ := host.Info()
-	device := data.Device{}
+	device := static.Device{}
 	device.SetHostname(hostInfo.Hostname)
 	device.SetOS(hostInfo.OS + " " + hostInfo.Platform + " " + hostInfo.PlatformVersion)
 	device.SetID(hostInfo.HostID)
@@ -35,19 +35,19 @@ func collectIPAddress() string {
 
 }
 
-func collectHardwareData(device *data.Device) *data.Device {
+func collectHardwareData(device *static.Device) *static.Device {
 	cpuData := CPUCollector{}.Collect()
-	cpu, ok := cpuData.(data.CPU)
+	cpu, ok := cpuData.(static.CPU)
 	if !ok {
 		panic("Failed to collect CPU data")
 	}
 	memData := MemoryCollector{}.Collect()
-	memory, ok := memData.(data.Memory)
+	memory, ok := memData.(static.Memory)
 	if !ok {
 		panic("Failed to collect Memory data")
 	}
 
-	hardware := data.Hardware{}
+	hardware := static.Hardware{}
 	hardware.SetCPU(cpu)
 	hardware.SetMemory(memory)
 

@@ -1,7 +1,7 @@
 package collector
 
 import (
-	"SysTrace_Agent/internal/data"
+	"SysTrace_Agent/internal/data/static"
 
 	"github.com/shirou/gopsutil/v3/mem"
 )
@@ -9,8 +9,8 @@ import (
 type MemoryCollector struct {
 }
 
-func (m MemoryCollector) Collect() data.Data {
-	memData := data.Memory{}
+func (m MemoryCollector) Collect() static.Data {
+	memData := static.Memory{}
 	memStats, _ := mem.VirtualMemory()
 	memData.SetTotal(memStats.Total)
 	memData.SetUsed(memStats.Used)

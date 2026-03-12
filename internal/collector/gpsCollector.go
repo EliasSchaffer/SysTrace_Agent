@@ -1,7 +1,7 @@
 package collector
 
 import (
-	"SysTrace_Agent/internal/data"
+	"SysTrace_Agent/internal/data/static"
 	"SysTrace_Agent/internal/transport"
 	"encoding/json"
 	"fmt"
@@ -15,7 +15,7 @@ import (
 type GPSCollector struct {
 }
 
-func (G GPSCollector) Collect() data.Data {
+func (G GPSCollector) Collect() static.Data {
 	gpsData := GetGPSDataByLocationAPI()
 	if gpsData != nil {
 		return *gpsData
@@ -32,7 +32,7 @@ func (G GPSCollector) Collect() data.Data {
 	return nil
 }
 
-func GetGPSDataByIP() *data.GPS {
+func GetGPSDataByIP() *static.GPS {
 	envLoader := transport.ENVLoader{}
 	apiKey := envLoader.GetGeoLocationAPIKey()
 	url := fmt.Sprintf("https://api.ipgeolocation.io/ipgeo?apiKey=%s", apiKey)
@@ -51,7 +51,7 @@ func GetGPSDataByIP() *data.GPS {
 		return nil
 	}
 
-	gps := &data.GPS{}
+	gps := &static.GPS{}
 
 	if city, ok := result["city"].(string); ok {
 		gps.SetCity(city)
@@ -92,7 +92,7 @@ func getGpsHelperPath() string {
 	return filepath.Join(strings.TrimSpace(string(out)), "gpshelper.exe")
 }
 
-func GetGPSDataByLocationAPI() *data.GPS {
+func GetGPSDataByLocationAPI() *static.GPS {
 	gpsHelperPath := getGpsHelperPath()
 	if gpsHelperPath == "" {
 		fmt.Println("Error: GpsHelper App nicht installiert!")
@@ -106,7 +106,7 @@ func GetGPSDataByLocationAPI() *data.GPS {
 		return nil
 	}
 
-	gps := &data.GPS{}
+	gps := &static.GPS{}
 	if err = json.Unmarshal(output, gps); err != nil {
 		fmt.Printf("Error unmarshaling GPS data: %v\n", err)
 		return nil
@@ -117,7 +117,7 @@ func GetGPSDataByLocationAPI() *data.GPS {
 	return gps
 }
 
-func enrichGPSData(gps *data.GPS) {
+func enrichGPSData(gps *static.GPS) {
 	url := fmt.Sprintf("https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=%f&lon=%f",
 		gps.GetLatitude(), gps.GetLongitude())
 

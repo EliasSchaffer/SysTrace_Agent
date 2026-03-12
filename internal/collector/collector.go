@@ -1,7 +1,9 @@
 package collector
 
-import "SysTrace_Agent/internal/data"
+import (
+	"SysTrace_Agent/internal/data/static"
+)
 
 type Collector interface {
-	Collect() data.Data
+	Collect() static.Data
 }

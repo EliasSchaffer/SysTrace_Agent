@@ -1,4 +1,4 @@
-package data
+package static
 
 type Data interface {
 	Metricname() string

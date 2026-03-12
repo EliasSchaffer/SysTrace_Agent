@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"SysTrace_Agent/internal/data"
+	"SysTrace_Agent/internal/data/ws"
 	"context"
 	"encoding/json"
 	"errors"
@@ -108,7 +108,7 @@ func (s *ServerConnector) Send(data []byte) error {
 	return nil
 }
 
-func (s *ServerConnector) ReadLoop(onResponse func(resp data.WSResponse)) {
+func (s *ServerConnector) ReadLoop(onResponse func(resp ws.WSRequest)) {
 	if s.conn == nil {
 		return
 	}
@@ -123,9 +123,9 @@ func (s *ServerConnector) ReadLoop(onResponse func(resp data.WSResponse)) {
 			continue
 		}
 
-		var resp data.WSResponse
+		var resp ws.WSRequest
 		if err := json.Unmarshal(msg, &resp); err != nil {
-			fmt.Println("Invalid WSResponse:", err, "raw:", string(msg))
+			fmt.Println("Invalid WSRequest:", err, "raw:", string(msg))
 			continue
 		}
 
@@ -161,4 +161,16 @@ func (s *ServerConnector) MasterServerURL() string {
 
 func (s *ServerConnector) ClientID() string {
 	return s.clientID
+}
+
+func (s *ServerConnector) SendResponse(response ws.WSResponse) {
+	respBytes, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println("Error marshaling response:", err)
+		return
+	}
+
+	if err := s.Send(respBytes); err != nil {
+		fmt.Println("Error sending response:", err)
+	}
 }

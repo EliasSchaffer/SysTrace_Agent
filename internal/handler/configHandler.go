@@ -1,14 +1,14 @@
 package handler
 
 import (
-	"SysTrace_Agent/internal/data"
+	"SysTrace_Agent/internal/data/ws"
 	"SysTrace_Agent/internal/transport"
 	"context"
 	"fmt"
 	"strings"
 )
 
-func HandleConfig(resp data.WSResponse, connector *transport.ServerConnector) {
+func HandleConfig(resp ws.WSRequest, connector *transport.ServerConnector) {
 	action := strings.TrimSpace(resp.Payload)
 	message := strings.TrimSpace(resp.Message)
 

@@ -2,7 +2,8 @@ package agent
 
 import (
 	"SysTrace_Agent/internal/collector"
-	"SysTrace_Agent/internal/data"
+	"SysTrace_Agent/internal/data/static"
+	"SysTrace_Agent/internal/data/ws"
 	"SysTrace_Agent/internal/handler"
 	"SysTrace_Agent/internal/transport"
 	"context"
@@ -14,7 +15,7 @@ import (
 )
 
 type Agent struct {
-	device          data.Device
+	device          static.Device
 	serverConnector transport.ServerConnector
 }
 
@@ -37,10 +38,10 @@ func (a *Agent) StartAgent() {
 	}
 
 	defer a.serverConnector.Close()
-	queue := make(chan data.WSResponse, 16)
+	queue := make(chan ws.WSRequest, 16)
 
-	go a.serverConnector.ReadLoop(func(response data.WSResponse) {
-		a.handleServerMessage(response, queue)
+	go a.serverConnector.ReadLoop(func(request ws.WSRequest) {
+		a.handleServerMessage(request, queue)
 	})
 
 	ticker := time.NewTicker(5 * time.Second)
@@ -66,7 +67,7 @@ func (a *Agent) StartAgent() {
 			}
 		case <-ticker.C:
 			a.CollectData()
-			wsEvent := data.WSEvent{
+			wsEvent := ws.WSEvent{
 				Type:   "update",
 				Device: a.device,
 			}
@@ -101,8 +102,8 @@ func (a *Agent) StartAgent() {
 
 				if reconnected {
 					fmt.Println("Reconnected successfully!")
-					go a.serverConnector.ReadLoop(func(response data.WSResponse) {
-						a.handleServerMessage(response, queue)
+					go a.serverConnector.ReadLoop(func(request ws.WSRequest) {
+						a.handleServerMessage(request, queue)
 					})
 				} else {
 					fmt.Println("Failed to reconnect after 15 attempts. Giving up.")
@@ -152,23 +153,29 @@ func (a *Agent) printStats() {
 }
 
 func (a *Agent) CollectData() {
-	device, ok := collector.HardwareCollector{}.Collect().(data.Device)
+	device, ok := collector.HardwareCollector{}.Collect().(static.Device)
 	if !ok {
 		panic("Failed to collect hardware data")
 	}
 	a.device = device
-	gpsdata, ok := collector.GPSCollector{}.Collect().(data.GPS)
+	gpsdata, ok := collector.GPSCollector{}.Collect().(static.GPS)
 	if !ok {
 		panic("Failed to collect GPS data")
 	}
 	a.device.SetGPS(gpsdata)
 }
 
-func (a *Agent) handleServerMessage(response data.WSResponse, queue chan<- data.WSResponse) {
-	fmt.Printf("Received message - Type: %s, Message: %s\n", response.Type, response.Message)
+func (a *Agent) handleServerMessage(request ws.WSRequest, queue chan<- ws.WSRequest) {
+	fmt.Printf("Received message - Type: %s, Message: %s\n", request.Type, request.Message)
 	select {
-	case queue <- response:
+	case queue <- request:
 	default:
-		fmt.Printf("Incoming queue full, dropping message type=%s message=%s\n", response.Type, response.Message)
+		fmt.Printf("Incoming queue full, dropping message type=%s message=%s\n", request.Type, request.Message)
+		response := ws.WSResponse{
+			"response",
+			request.RequestID,
+			503,
+		}
+		go a.serverConnector.SendResponse(response)
 	}
 }
