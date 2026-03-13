@@ -46,7 +46,7 @@ go run .
 - `internal/transport`: Connection and `.env` handling
 - `internal/data`: Data models for transfer and storage
 
-## Build (Optional)
+## Build
 
 ```bash
 go build -o SysTrace_Agent.exe .
