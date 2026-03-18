@@ -30,7 +30,7 @@ Page custom ConfigPageShow ConfigPageLeave
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 
-!insertmacro MUI_LANGUAGE "German"
+!insertmacro MUI_LANGUAGE "English"
 
 ; ============================================
 Function .onInit
@@ -40,7 +40,7 @@ Function .onInit
     Pop $0
     Pop $1
     ${If} $0 != 0
-        MessageBox MB_ICONSTOP|MB_OK "Docker wurde nicht gefunden.$\r$\n$\r$\nBitte Docker Desktop installieren und den Installer erneut starten.$\r$\nhttps://www.docker.com/products/docker-desktop"
+        MessageBox MB_ICONSTOP|MB_OK "Docker was not found.$\r$\n$\r$\nPlease install Docker Desktop and run the installer again.$\r$\nhttps://www.docker.com/products/docker-desktop"
         Abort
     ${EndIf}
 
@@ -49,7 +49,7 @@ Function .onInit
     Pop $0
     Pop $1
     ${If} $0 != 0
-        MessageBox MB_ICONSTOP|MB_OK "Docker ist installiert, aber die Engine läuft nicht.$\r$\n$\r$\nBitte Docker Desktop starten, warten bis 'Engine running' angezeigt wird, und den Installer erneut starten."
+        MessageBox MB_ICONSTOP|MB_OK "Docker is installed, but the engine is not running.$\r$\n$\r$\nPlease start Docker Desktop, wait until 'Engine running' is shown, then run the installer again."
         Abort
     ${EndIf}
 
@@ -85,20 +85,20 @@ Function ConfigPageLeave
 
     ; Validate that Server URL is not empty
     ${If} $ServerURL == ""
-        MessageBox MB_ICONEXCLAMATION|MB_OK "Bitte eine Master Server URL eingeben."
+        MessageBox MB_ICONEXCLAMATION|MB_OK "Please enter a Master Server URL."
         Abort
     ${EndIf}
 
     ; Validate that Geo API Key is not empty
     ${If} $GeoAPIKey == ""
-        MessageBox MB_ICONEXCLAMATION|MB_OK "Bitte einen Geolocation API Key eingeben."
+        MessageBox MB_ICONEXCLAMATION|MB_OK "Please enter a Geolocation API Key."
         Abort
     ${EndIf}
 
 FunctionEnd
 
 ; ============================================
-Section "Hauptprogramm" SecMain
+Section "Main Program" SecMain
 
     SetOutPath "$INSTDIR"
 
@@ -130,7 +130,7 @@ Section "Hauptprogramm" SecMain
     ; Start menu shortcuts
     CreateDirectory "$SMPROGRAMS\SysTrace Agent"
     CreateShortcut "$SMPROGRAMS\SysTrace Agent\SysTrace Agent.lnk" "$INSTDIR\SysTrace_Agent.exe"
-    CreateShortcut "$SMPROGRAMS\SysTrace Agent\Deinstallieren.lnk" "$INSTDIR\Uninstall.exe"
+    CreateShortcut "$SMPROGRAMS\SysTrace Agent\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 
     ; Desktop shortcut
     CreateShortCut "$DESKTOP\SysTrace Agent.lnk" "$INSTDIR\SysTrace_Agent.exe"
@@ -160,7 +160,7 @@ Section "Uninstall"
     ; Remove shortcuts
     Delete "$DESKTOP\SysTrace Agent.lnk"
     Delete "$SMPROGRAMS\SysTrace Agent\SysTrace Agent.lnk"
-    Delete "$SMPROGRAMS\SysTrace Agent\Deinstallieren.lnk"
+    Delete "$SMPROGRAMS\SysTrace Agent\Uninstall.lnk"
     RMDir "$SMPROGRAMS\SysTrace Agent"
 
     ; Remove registry entries
