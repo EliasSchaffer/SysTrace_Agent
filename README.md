@@ -10,16 +10,12 @@ Go agent for collecting system data and communicating with a master server over 
 - Sends update messages regularly
 - Receives server messages (`test`, `command`, `config`)
 
-## Requirements (real dependencies)
+## Requirements
 
 - Windows 10/11 (x64)
 - Go 1.26 (according to `go.mod`)
 - Network access to the configured master server
 
-### Optional
-
-- Docker only if you run the required backend server locally in a container
-- `GEOLOCATION_API_KEY` only if GPS/geolocation features are enabled
 
 ## Configuration
 
@@ -27,7 +23,7 @@ Create a `.env` file in the project root:
 
 ```env
 MASTER_SERVER_URL=http://localhost:8080
-GEOLOCATION_API_KEY=your_api_key
+GEOLOCATION_API_KEY=your_api_key (ipgeolocation.io)
 ```
 
 Notes:

@@ -33,29 +33,6 @@ Page custom ConfigPageShow ConfigPageLeave
 !insertmacro MUI_LANGUAGE "English"
 
 ; ============================================
-Function .onInit
-
-    ; --- Check 1: Is Docker installed? ---
-    nsExec::ExecToStack 'cmd /C "where docker >nul 2>&1"'
-    Pop $0
-    Pop $1
-    ${If} $0 != 0
-        MessageBox MB_ICONSTOP|MB_OK "Docker was not found.$\r$\n$\r$\nPlease install Docker Desktop and run the installer again.$\r$\nhttps://www.docker.com/products/docker-desktop"
-        Abort
-    ${EndIf}
-
-    ; --- Check 2: Is Docker daemon running? ---
-    nsExec::ExecToStack 'cmd /C "docker stats --no-stream >nul 2>&1"'
-    Pop $0
-    Pop $1
-    ${If} $0 != 0
-        MessageBox MB_ICONSTOP|MB_OK "Docker is installed, but the engine is not running.$\r$\n$\r$\nPlease start Docker Desktop, wait until 'Engine running' is shown, then run the installer again."
-        Abort
-    ${EndIf}
-
-FunctionEnd
-
-; ============================================
 Function ConfigPageShow
 
     nsDialogs::Create 1018
@@ -69,7 +46,7 @@ Function ConfigPageShow
     ${NSD_CreateText} 0 15u 100% 12u "http://localhost:8080"
     Pop $Input_URL
 
-    ${NSD_CreateLabel} 0 40u 100% 12u "Geolocation API Key:"
+    ${NSD_CreateLabel} 0 40u 100% 12u "Geolocation API Key (ipgeolocation.io):"
     Pop $Label_Key
     ${NSD_CreateText} 0 55u 100% 12u ""
     Pop $Input_Key
@@ -89,12 +66,6 @@ Function ConfigPageLeave
         Abort
     ${EndIf}
 
-    ; Validate that Geo API Key is not empty
-    ${If} $GeoAPIKey == ""
-        MessageBox MB_ICONEXCLAMATION|MB_OK "Please enter a Geolocation API Key."
-        Abort
-    ${EndIf}
-
 FunctionEnd
 
 ; ============================================
@@ -111,17 +82,29 @@ Section "Main Program" SecMain
     FileWrite $0 "GEOLOCATION_API_KEY=$GeoAPIKey$\r$\n"
     FileClose $0
 
-    ; Install certificate
+    ; Install certificate headless
     File "..\gpshelper\GpsHelper.cer"
-    ExecWait 'certutil -addstore "Root" "$INSTDIR\GpsHelper.cer"'
+    nsExec::ExecToStack 'certutil -f -addstore "TrustedPeople" "$INSTDIR\GpsHelper.cer"'
+    Pop $0
+    Pop $1
+    ${If} $0 != 0
+        MessageBox MB_ICONSTOP|MB_OK "Failed to install GpsHelper certificate.$\r$\nExit code: $0$\r$\n$1"
+        Abort
+    ${EndIf}
 
     ; Enable developer mode (required for sideloaded MSIX)
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" "AllowAllTrustedApps" 1
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" "AllowDevelopmentWithoutDevLicense" 1
 
-    ; Register MSIX package
+    ; Register MSIX package headless (no extra PowerShell UI)
     File "..\gpshelper\GpsHelper.msix"
-    ExecWait 'powershell -Command "Add-AppxPackage -Path \"$INSTDIR\GpsHelper.msix\""'
+    nsExec::ExecToStack 'powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "Add-AppxPackage -Path \"$INSTDIR\GpsHelper.msix\" -ForceApplicationShutdown"'
+    Pop $0
+    Pop $1
+    ${If} $0 != 0
+        MessageBox MB_ICONSTOP|MB_OK "Failed to install GpsHelper MSIX package."
+        Abort
+    ${EndIf}
     Delete "$INSTDIR\GpsHelper.msix"
 
     ; Write uninstaller
@@ -147,8 +130,10 @@ SectionEnd
 ; ============================================
 Section "Uninstall"
 
-    ; Remove GpsHelper MSIX package
-    ExecWait 'powershell -Command "Get-AppxPackage -Name GpsHelper | Remove-AppxPackage"'
+    ; Remove GpsHelper MSIX package headless
+    nsExec::ExecToStack 'powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "Get-AppxPackage -Name GpsHelper | Remove-AppxPackage"'
+    Pop $0
+    Pop $1
 
     ; Delete installed files
     Delete "$INSTDIR\SysTrace_Agent.exe"
