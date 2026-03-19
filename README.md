@@ -15,7 +15,7 @@ Go agent for collecting system data and communicating with a master server over 
 - Windows 10/11 (x64)
 - Go 1.26 (according to `go.mod`)
 - Network access to the configured master server
-
+- Docker Desktop is not required for this agent or installer
 
 ## Configuration
 

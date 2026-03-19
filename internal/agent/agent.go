@@ -117,7 +117,6 @@ func (a *Agent) StartAgent() {
 func (a *Agent) StopAgent() {
 	fmt.Println("Agent stopped.")
 	a.serverConnector.Close()
-
 }
 
 func (a *Agent) SetNewMasterServer(url string) {
