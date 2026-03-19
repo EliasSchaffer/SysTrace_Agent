@@ -79,16 +79,16 @@ func showCoutdownMessageBox(message string, action func()) {
 		Children: []Widget{
 			Label{
 				AssignTo: &label,
-				Text:     fmt.Sprintf("Die Aktion '%s' wird in 10 Sekunden ausgeführt.", message),
+				Text:     fmt.Sprintf("The action '%s' will run in 10 seconds.", message),
 			},
 			PushButton{
-				Text: "Jetzt ausführen",
+				Text: "Run now",
 				OnClicked: func() {
 					finish(true)
 				},
 			},
 			PushButton{
-				Text: "Abbrechen",
+				Text: "Cancel",
 				OnClicked: func() {
 					finish(false)
 				},
@@ -106,7 +106,7 @@ func showCoutdownMessageBox(message string, action func()) {
 		for i := 10; i >= 0; i-- {
 			remaining := i
 			mw.Synchronize(func() {
-				if err := label.SetText(fmt.Sprintf("Die Aktion '%s' wird in %d Sekunden ausgeführt.", message, remaining)); err != nil {
+				if err := label.SetText(fmt.Sprintf("The action '%s' will run in %d seconds.", message, remaining)); err != nil {
 					fmt.Println("Failed to update countdown text:", err)
 				}
 			})
