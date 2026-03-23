@@ -23,23 +23,24 @@ type Agent struct {
 
 func (a *Agent) StartAgent() {
 	settingsHandler := handler.SettingsHandler{}
-	fmt.Println("Agent started...")
+	a.writeLog("Agent started")
 	a.CollectData()
 	clientID := a.device.GetID()
 
 	if clientID == "" {
-		fmt.Println("Warning: ClientID is empty, using hostname as fallback")
+		a.writeWarn("Device ID is empty, falling back to hostname as ClientID")
 		clientID = a.device.GetHostname()
 	}
 
-	fmt.Printf("Initializing agent with ClientID: %s\n", clientID)
+	a.writeLog(fmt.Sprintf("Initializing agent with ClientID: %s", clientID))
 	a.serverConnector = *transport.NewServerConnector(clientID)
 
 	if err := a.serverConnector.Connect(context.Background()); err != nil {
-		fmt.Println("Failed to connect to master server:", err)
+		a.writeError(fmt.Sprintf("Failed to connect to master server: %v", err))
 		return
 	}
 
+	a.writeLog("Successfully connected to master server")
 	defer a.serverConnector.Close()
 	queue := make(chan ws.WSRequest, 16)
 
@@ -62,12 +63,14 @@ func (a *Agent) StartAgent() {
 			a.lastSettingsChange = info.ModTime()
 			env := transport.ENVLoader{}
 			settings := env.GetSettings()
-			settingsHandler.HandleSettingsChange(settings)
+			go settingsHandler.HandleSettingsChange(settings)
 
+		} else {
+			fmt.Println("No Changes found")
 		}
 		select {
 		case cmd := <-queue:
-			fmt.Printf("Dispatching message type: %s\n", cmd.Type)
+			a.writeLog(fmt.Sprintf("Dispatching message type: %s\n", cmd.Type))
 			switch cmd.Type {
 			case "test":
 				if err := beeep.Alert(cmd.Message, "Test", "Test"); err != nil {
@@ -80,7 +83,7 @@ func (a *Agent) StartAgent() {
 			case "error":
 				//TODO: Implement error handling logic
 			default:
-				fmt.Printf("Unknown message type: %s, Message: %s\n", cmd.Type, cmd.Message)
+				a.writeWarn(fmt.Sprintf("Received unknown message type: %s", cmd.Type))
 			}
 		case <-ticker.C:
 			a.CollectData()
@@ -90,12 +93,12 @@ func (a *Agent) StartAgent() {
 			}
 			payload, err := json.Marshal(wsEvent)
 			if err != nil {
-				fmt.Println("Error marshaling data:", err)
+				a.writeError(fmt.Sprintf("Error marshaling data: %v", err))
 				continue
 			}
 			if err := a.serverConnector.Send(payload); err != nil {
-				fmt.Println("Error sending data to master server:", err)
-				fmt.Println("Trying to reconnect...")
+				a.writeError(fmt.Sprintf("Error sending data to master server: %v", err))
+				a.writeLog("Attempting to reconnect to master server...")
 
 				reconnected := false
 				for i := 0; i < 15; i++ {
@@ -118,12 +121,12 @@ func (a *Agent) StartAgent() {
 				}
 
 				if reconnected {
-					fmt.Println("Reconnected successfully!")
+					a.writeLog("Reconnected to master server successfully.")
 					go a.serverConnector.ReadLoop(func(request ws.WSRequest) {
 						a.handleServerMessage(request, queue)
 					})
 				} else {
-					fmt.Println("Failed to reconnect after 15 attempts. Giving up.")
+					a.writeLog("Failed to reconnect to master server after multiple attempts, exiting agent.")
 					return
 				}
 			}

@@ -6,15 +6,15 @@ import (
 	"runtime"
 )
 
+var appAgent = &agent.Agent{}
+
 func main() {
 	runtime.LockOSThread()
+	go appAgent.StartAgent()
 	agent.InitSysTray(Close)
-	a := agent.Agent{}
-	a.StartAgent()
 }
 
 func Close() {
-	a := agent.Agent{}
-	a.StopAgent()
+	appAgent.StopAgent()
 	os.Exit(0)
 }
