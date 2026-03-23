@@ -2,11 +2,15 @@ package agent
 
 import (
 	"fmt"
+	"sync/atomic"
 
 	"github.com/getlantern/systray"
+	"github.com/lxn/walk"
+	. "github.com/lxn/walk/declarative"
 )
 
 var systemTrayOnClose func()
+var settingsWindowOpen atomic.Bool
 
 func InitSysTray(onClose func()) {
 	systemTrayOnClose = onClose
@@ -41,6 +45,34 @@ func onExit() {
 }
 
 func openSettings() {
-	fmt.Println("Settings clicked")
-	//TODO: Settings-Fenster öffnen
+	if !settingsWindowOpen.CompareAndSwap(false, true) {
+		fmt.Println("Settings-Fenster ist bereits offen")
+		return
+	}
+
+	defer settingsWindowOpen.Store(false)
+
+	var mw *walk.MainWindow
+	window := MainWindow{
+		AssignTo: &mw,
+		Title:    "SysTrace Settings",
+		Size:     Size{360, 180},
+		Layout:   VBox{},
+		Children: []Widget{
+			Label{Text: "Settings-Fenster aktiv."},
+			Label{Text: "Hier koennen spaeter Konfigurationen bearbeitet werden."},
+			PushButton{
+				Text: "Schliessen",
+				OnClicked: func() {
+					if err := mw.Close(); err != nil {
+						fmt.Println("Settings-Fenster konnte nicht geschlossen werden:", err)
+					}
+				},
+			},
+		},
+	}
+
+	if _, err := window.Run(); err != nil {
+		fmt.Println("Settings-Fenster konnte nicht gestartet werden:", err)
+	}
 }

@@ -13,6 +13,8 @@ import (
 )
 
 type GPSCollector struct {
+	sendGPS   bool
+	staticGPS bool
 }
 
 func (G GPSCollector) Collect() static.Data {

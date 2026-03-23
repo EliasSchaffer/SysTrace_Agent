@@ -9,17 +9,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/gen2brain/beeep"
 )
 
 type Agent struct {
-	device          static.Device
-	serverConnector transport.ServerConnector
+	device             static.Device
+	serverConnector    transport.ServerConnector
+	lastSettingsChange time.Time
 }
 
 func (a *Agent) StartAgent() {
+	settingsHandler := handler.SettingsHandler{}
 	fmt.Println("Agent started...")
 	a.CollectData()
 	clientID := a.device.GetID()
@@ -48,6 +51,20 @@ func (a *Agent) StartAgent() {
 	defer ticker.Stop()
 
 	for {
+		fmt.Println("Check for settings change")
+		info, err := os.Stat(".env")
+		if err != nil {
+			fmt.Println("Fehler:", err)
+			return
+		}
+		if info.ModTime().After(a.lastSettingsChange) {
+			fmt.Println("Settings file changed, reloading...")
+			a.lastSettingsChange = info.ModTime()
+			env := transport.ENVLoader{}
+			settings := env.GetSettings()
+			settingsHandler.HandleSettingsChange(settings)
+
+		}
 		select {
 		case cmd := <-queue:
 			fmt.Printf("Dispatching message type: %s\n", cmd.Type)
