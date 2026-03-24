@@ -13,23 +13,39 @@ import (
 )
 
 type GPSCollector struct {
-	sendGPS   bool
-	staticGPS bool
+	sendGPS       bool
+	staticGPS     bool
+	staticGPSData static.GPS
 }
 
 func (G GPSCollector) Collect() static.Data {
-	gpsData := GetGPSDataByLocationAPI()
-	if gpsData != nil {
-		return *gpsData
-	} else {
-		fmt.Println("Failed to get GPS data from Location API, trying IP-based geolocation...")
-		gpsData = GetGPSDataByIP()
-		if gpsData != nil {
-			fmt.Println("")
-			return *gpsData
+	noGPS := static.GPS{
+		Latitude:  -1,
+		Longitude: -1,
+		City:      "Unknown",
+		Region:    "Unknown",
+		Country:   "Unknown",
+	}
+	if G.sendGPS {
+		if !G.staticGPS {
+			gpsData := GetGPSDataByLocationAPI()
+			if gpsData != nil {
+				return *gpsData
+			} else {
+				fmt.Println("Failed to get GPS data from Location API, trying IP-based geolocation...")
+				gpsData = GetGPSDataByIP()
+				if gpsData != nil {
+					fmt.Println("")
+					return *gpsData
+				} else {
+					fmt.Println("Failed to get GPS data from both methods.")
+				}
+			}
 		} else {
-			fmt.Println("Failed to get GPS data from both methods.")
+			return G.staticGPSData
 		}
+	} else {
+		return noGPS
 	}
 	return nil
 }
@@ -98,6 +114,7 @@ func GetGPSDataByLocationAPI() *static.GPS {
 	gpsHelperPath := getGpsHelperPath()
 	if gpsHelperPath == "" {
 		fmt.Println("Error: GpsHelper App nicht installiert!")
+
 		return nil
 	}
 
@@ -164,4 +181,16 @@ func enrichGPSData(gps *static.GPS) {
 	gps.SetCity(city)
 	gps.SetCountry(geoResult.Address.Country)
 	gps.SetRegion(geoResult.Address.State)
+}
+
+func (G GPSCollector) SetStaticGPSData(gps static.GPS) {
+	G.staticGPSData = gps
+}
+
+func (G GPSCollector) SetSendStaticGPS(send bool) {
+	G.staticGPS = send
+}
+
+func (G GPSCollector) SetSendGPS(send bool) {
+	G.sendGPS = send
 }

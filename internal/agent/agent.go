@@ -63,7 +63,7 @@ func (a *Agent) StartAgent() {
 			a.lastSettingsChange = info.ModTime()
 			env := transport.ENVLoader{}
 			settings := env.GetSettings()
-			go settingsHandler.HandleSettingsChange(settings)
+			go settingsHandler.HandleSettingsChange(settings, a.SetNewMasterServer, a.changeStaticGPSData)
 
 		} else {
 			fmt.Println("No Changes found")
@@ -152,23 +152,16 @@ func (a *Agent) SetNewMasterServer(url string) {
 	envLoader.SetMasterServerURL(url)
 }
 
-func (a *Agent) printStats() {
-	fmt.Println("=====================================")
-	fmt.Printf("Hostname: %s\n", a.device.GetHostname())
-	fmt.Printf("OS: %s\n", a.device.GetOS())
-	fmt.Printf("CPU: %.2f%%", a.device.GetHardware().GetCPU().GetUsage())
-	fmt.Printf("RAM: %.2f%% (Used: %d MB / Total: %d MB)\n",
-		a.device.GetHardware().GetMemory().GetUsedPercent(),
-		a.device.GetHardware().GetMemory().GetUsed()/1024/1024,
-		a.device.GetHardware().GetMemory().GetTotal()/1024/1024)
-	fmt.Printf("GPS - City: %s, Region: %s, Country: %s\n",
-		a.device.GetGPS().GetCity(),
-		a.device.GetGPS().GetRegion(),
-		a.device.GetGPS().GetCountry())
-	fmt.Printf("GPS - Latitude: %.4f, Longitude: %.4f\n",
-		a.device.GetGPS().GetLatitude(),
-		a.device.GetGPS().GetLongitude())
-	fmt.Println("=====================================")
+func (a *Agent) changeStaticGPSData(gps static.GPS) {
+	collector.GPSCollector{}.SetStaticGPSData(gps)
+}
+
+func (a *Agent) changeSendStaticGPS(send bool) {
+	collector.GPSCollector{}.SetSendStaticGPS(send)
+}
+
+func (a *Agent) changeSendGPS(send bool) {
+	collector.GPSCollector{}.SetSendGPS(send)
 }
 
 func (a *Agent) CollectData() {
