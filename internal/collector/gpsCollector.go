@@ -18,7 +18,7 @@ type GPSCollector struct {
 	staticGPSData static.GPS
 }
 
-func (G GPSCollector) Collect() static.Data {
+func (g *GPSCollector) Collect() static.Data {
 	noGPS := static.GPS{
 		Latitude:  -1,
 		Longitude: -1,
@@ -26,8 +26,8 @@ func (G GPSCollector) Collect() static.Data {
 		Region:    "Unknown",
 		Country:   "Unknown",
 	}
-	if G.sendGPS {
-		if !G.staticGPS {
+	if g.sendGPS {
+		if !g.staticGPS {
 			gpsData := GetGPSDataByLocationAPI()
 			if gpsData != nil {
 				return *gpsData
@@ -42,12 +42,12 @@ func (G GPSCollector) Collect() static.Data {
 				}
 			}
 		} else {
-			return G.staticGPSData
+			return g.staticGPSData
 		}
 	} else {
 		return noGPS
 	}
-	return nil
+	return noGPS
 }
 
 func GetGPSDataByIP() *static.GPS {
@@ -183,14 +183,14 @@ func enrichGPSData(gps *static.GPS) {
 	gps.SetRegion(geoResult.Address.State)
 }
 
-func (G GPSCollector) SetStaticGPSData(gps static.GPS) {
-	G.staticGPSData = gps
+func (g *GPSCollector) SetStaticGPSData(gps static.GPS) {
+	g.staticGPSData = gps
 }
 
-func (G GPSCollector) SetSendStaticGPS(send bool) {
-	G.staticGPS = send
+func (g *GPSCollector) SetSendStaticGPS(send bool) {
+	g.staticGPS = send
 }
 
-func (G GPSCollector) SetSendGPS(send bool) {
-	G.sendGPS = send
+func (g *GPSCollector) SetSendGPS(send bool) {
+	g.sendGPS = send
 }

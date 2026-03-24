@@ -19,11 +19,15 @@ type Agent struct {
 	device             static.Device
 	serverConnector    transport.ServerConnector
 	lastSettingsChange time.Time
+	gpsCollector       collector.GPSCollector
 }
 
 func (a *Agent) StartAgent() {
 	settingsHandler := handler.SettingsHandler{}
 	a.writeLog("Agent started")
+	env := transport.ENVLoader{}
+	initialSettings := env.GetSettings()
+	a.applyGPSSettings(initialSettings)
 	a.CollectData()
 	clientID := a.device.GetID()
 
@@ -61,9 +65,8 @@ func (a *Agent) StartAgent() {
 		if info.ModTime().After(a.lastSettingsChange) {
 			fmt.Println("Settings file changed, reloading...")
 			a.lastSettingsChange = info.ModTime()
-			env := transport.ENVLoader{}
 			settings := env.GetSettings()
-			go settingsHandler.HandleSettingsChange(settings, a.SetNewMasterServer, a.changeStaticGPSData)
+			go settingsHandler.HandleSettingsChange(settings, a.SetNewMasterServer, a.changeStaticGPSData, a.changeSendStaticGPS, a.changeSendGPS)
 
 		} else {
 			fmt.Println("No Changes found")
@@ -127,7 +130,8 @@ func (a *Agent) StartAgent() {
 					})
 				} else {
 					a.writeLog("Failed to reconnect to master server after multiple attempts, exiting agent.")
-					return
+					a.StopAgent()
+					os.Exit(1)
 				}
 			}
 		}
@@ -153,15 +157,27 @@ func (a *Agent) SetNewMasterServer(url string) {
 }
 
 func (a *Agent) changeStaticGPSData(gps static.GPS) {
-	collector.GPSCollector{}.SetStaticGPSData(gps)
+	a.gpsCollector.SetStaticGPSData(gps)
 }
 
 func (a *Agent) changeSendStaticGPS(send bool) {
-	collector.GPSCollector{}.SetSendStaticGPS(send)
+	a.gpsCollector.SetSendStaticGPS(send)
 }
 
 func (a *Agent) changeSendGPS(send bool) {
-	collector.GPSCollector{}.SetSendGPS(send)
+	a.gpsCollector.SetSendGPS(send)
+}
+
+func (a *Agent) applyGPSSettings(settings static.Settings) {
+	a.changeSendGPS(settings.SENDGPS)
+	a.changeSendStaticGPS(settings.STATICGPS)
+	a.changeStaticGPSData(static.GPS{
+		Latitude:  settings.GPS_LATITUDE,
+		Longitude: settings.GPS_LONGITUDE,
+		City:      settings.GPS_CITY,
+		Region:    settings.GPS_REGION,
+		Country:   settings.GPS_COUNTRY,
+	})
 }
 
 func (a *Agent) CollectData() {
@@ -170,7 +186,7 @@ func (a *Agent) CollectData() {
 		panic("Failed to collect hardware data")
 	}
 	a.device = device
-	gpsdata, ok := collector.GPSCollector{}.Collect().(static.GPS)
+	gpsdata, ok := a.gpsCollector.Collect().(static.GPS)
 	if !ok {
 		panic("Failed to collect GPS data")
 	}

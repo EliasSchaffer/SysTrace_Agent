@@ -24,7 +24,7 @@ func (s *SettingsHandler) HandleSettingsChange(settings static.Settings, setNewM
 	}
 
 	if s.settings.STATICGPS != settings.STATICGPS {
-		changeSendGPS(settings.STATICGPS)
+		changeSendStaticGPS(settings.STATICGPS)
 	}
 
 	if s.settings.GPS_LATITUDE != settings.GPS_LATITUDE ||

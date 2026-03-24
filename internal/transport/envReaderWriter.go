@@ -2,7 +2,9 @@ package transport
 
 import (
 	"SysTrace_Agent/internal/data/static"
+	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/joho/godotenv"
@@ -11,11 +13,58 @@ import (
 type ENVLoader struct {
 }
 
-func (l *ENVLoader) GetSettings() static.Settings {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
+func resolveEnvPath() string {
+	if wd, err := os.Getwd(); err == nil && wd != "" {
+		wdPath := filepath.Join(wd, ".env")
+		if _, err := os.Stat(wdPath); err == nil {
+			return wdPath
+		}
 	}
+
+	if exePath, err := os.Executable(); err == nil {
+		exeDir := filepath.Dir(exePath)
+		if exeDir != "" {
+			exeEnvPath := filepath.Join(exeDir, ".env")
+			if _, err := os.Stat(exeEnvPath); err == nil {
+				return exeEnvPath
+			}
+		}
+	}
+
+	if wd, err := os.Getwd(); err == nil && wd != "" {
+		return filepath.Join(wd, ".env")
+	}
+
+	return ".env"
+}
+
+func loadEnv() string {
+	envPath := resolveEnvPath()
+	if err := godotenv.Overload(envPath); err != nil {
+		panic(fmt.Sprintf("Error loading .env file (%s): %v", envPath, err))
+	}
+	return envPath
+}
+
+func readEnvMap(envPath string) map[string]string {
+	envMap, err := godotenv.Read(envPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return map[string]string{}
+		}
+		panic(fmt.Sprintf("Error reading .env file (%s): %v", envPath, err))
+	}
+	return envMap
+}
+
+func writeEnvMap(envPath string, envMap map[string]string) {
+	if err := godotenv.Write(envMap, envPath); err != nil {
+		panic(fmt.Sprintf("Error writing to .env file (%s): %v", envPath, err))
+	}
+}
+
+func (l *ENVLoader) GetSettings() static.Settings {
+	loadEnv()
 
 	sendGPS, _ := strconv.ParseBool(os.Getenv("SENDGPS"))
 	staticGPS, _ := strconv.ParseBool(os.Getenv("STATICGPS"))
@@ -37,73 +86,43 @@ func (l *ENVLoader) GetSettings() static.Settings {
 }
 
 func (e *ENVLoader) GetGeoLocationAPIKey() string {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
-	}
-
+	loadEnv()
 	return os.Getenv("GEOLOCATION_API_KEY")
 }
 
 func (e *ENVLoader) GetMasterServerURL() string {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
-	}
-
+	loadEnv()
 	return os.Getenv("MASTER_SERVER_URL")
-
 }
 
 func (e *ENVLoader) SetMasterServerURL(url string) {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
-	}
-
-	err = godotenv.Write(map[string]string{"MASTER_SERVER_URL": url}, ".env")
-	if err != nil {
-		panic("Error writing to .env file")
-	}
+	envPath := loadEnv()
+	envMap := readEnvMap(envPath)
+	envMap["MASTER_SERVER_URL"] = url
+	writeEnvMap(envPath, envMap)
 }
 
 func (e *ENVLoader) SetGeoLocationAPIKey(apiKey string) {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
-	}
-	err = godotenv.Write(map[string]string{"GEOLOCATION_API_KEY": apiKey}, ".env")
-	if err != nil {
-		panic("Error writing to .env file")
-	}
+	envPath := loadEnv()
+	envMap := readEnvMap(envPath)
+	envMap["GEOLOCATION_API_KEY"] = apiKey
+	writeEnvMap(envPath, envMap)
 }
 
 func (e *ENVLoader) GetSendGPSData() bool {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
-	}
+	loadEnv()
 	return os.Getenv("SENDGPS") == "true"
 }
 
 func (e *ENVLoader) SetSendGPSData(data bool) {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
-	}
-
-	err = godotenv.Write(map[string]string{"SENDGPS": strconv.FormatBool(data)}, ".env")
-
-	if err != nil {
-		panic("Error writing to .env file")
-	}
+	envPath := loadEnv()
+	envMap := readEnvMap(envPath)
+	envMap["SENDGPS"] = strconv.FormatBool(data)
+	writeEnvMap(envPath, envMap)
 }
 
 func (e *ENVLoader) GetStaticGPSData() static.GPS {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
-	}
+	loadEnv()
 
 	latitude, _ := strconv.ParseFloat(os.Getenv("GPS_LATITUDE"), 64)
 	longitude, _ := strconv.ParseFloat(os.Getenv("GPS_LONGITUDE"), 64)
@@ -119,18 +138,11 @@ func (e *ENVLoader) GetStaticGPSData() static.GPS {
 		Country:   os.Getenv("GPS_COUNTRY"),
 		Region:    os.Getenv("GPS_REGION"),
 	}
-
 }
 
 func (e *ENVLoader) SetStaticGPSData(data static.GPS) {
-	envMap, err := godotenv.Read(".env")
-	if err != nil {
-		if !os.IsNotExist(err) {
-			panic("Error loading .env file")
-		}
-		envMap = map[string]string{}
-	}
-
+	envPath := loadEnv()
+	envMap := readEnvMap(envPath)
 	envMap["GPS_LATITUDE"] = strconv.FormatFloat(data.Latitude, 'f', -1, 64)
 	envMap["GPS_LONGITUDE"] = strconv.FormatFloat(data.Longitude, 'f', -1, 64)
 	envMap["GPS_ALTITUDE"] = strconv.FormatFloat(data.Altitude, 'f', -1, 64)
@@ -138,9 +150,25 @@ func (e *ENVLoader) SetStaticGPSData(data static.GPS) {
 	envMap["GPS_CITY"] = data.City
 	envMap["GPS_COUNTRY"] = data.Country
 	envMap["GPS_REGION"] = data.Region
+	writeEnvMap(envPath, envMap)
+}
 
-	err = godotenv.Write(envMap, ".env")
-	if err != nil {
-		panic("Error writing to .env file")
+func (e *ENVLoader) SetSettings(settings static.Settings) error {
+	envPath := loadEnv()
+	envMap := readEnvMap(envPath)
+	envMap["GEOLOCATION_API_KEY"] = settings.GEOLOCATION_API_KEY
+	envMap["MASTER_SERVER_URL"] = settings.MASTER_SERVER_URL
+	envMap["LOGFILE_PATH"] = settings.LOGFILE_PATH
+	envMap["SENDGPS"] = strconv.FormatBool(settings.SENDGPS)
+	envMap["STATICGPS"] = strconv.FormatBool(settings.STATICGPS)
+	envMap["GPS_LATITUDE"] = strconv.FormatFloat(settings.GPS_LATITUDE, 'f', -1, 64)
+	envMap["GPS_LONGITUDE"] = strconv.FormatFloat(settings.GPS_LONGITUDE, 'f', -1, 64)
+	envMap["GPS_CITY"] = settings.GPS_CITY
+	envMap["GPS_REGION"] = settings.GPS_REGION
+	envMap["GPS_COUNTRY"] = settings.GPS_COUNTRY
+
+	if err := godotenv.Write(envMap, envPath); err != nil {
+		return err
 	}
+	return nil
 }
