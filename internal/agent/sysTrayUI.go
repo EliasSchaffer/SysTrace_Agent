@@ -40,7 +40,9 @@ func onReady() {
 	go func() {
 		<-mQuit.ClickedCh
 		systray.Quit()
-		systemTrayOnClose()
+		if systemTrayOnClose != nil {
+			systemTrayOnClose()
+		}
 	}()
 }
 
@@ -161,6 +163,15 @@ func openSettings() {
 						OnClicked: func() {
 							if err := mw.Close(); err != nil {
 								fmt.Println("Settings window could not be closed:", err)
+							}
+						},
+					},
+					PushButton{
+						Text: "Exit Agent",
+						OnClicked: func() {
+							systray.Quit()
+							if systemTrayOnClose != nil {
+								systemTrayOnClose()
 							}
 						},
 					},
