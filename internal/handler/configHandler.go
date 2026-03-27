@@ -4,6 +4,7 @@ import (
 	"SysTrace_Agent/internal/data/ws"
 	"SysTrace_Agent/internal/transport"
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -15,11 +16,21 @@ func HandleConfig(resp ws.WSRequest, connector *transport.ServerConnector) {
 	fmt.Printf("HandleConfig called - Payload: %q, Message: %q\n", action, message)
 	switch action {
 	case "getConfig":
-		//TODO: return config
+		//TODO: finish return config
+		env := transport.ENVLoader{}
+		config := env.GetSettings()
+		_, err := json.Marshal(config)
+		if err != nil {
+			fmt.Println("Failed to marshal config:", err)
+			return
+		}
+
 	case "setMasterServer":
 		setMasterServer(message, connector)
 	case "setDeviceName":
-		//TODO: set device name
+		// TODO: Think about removing and only setting an alias on the servers side
+		//env := transport.ENVLoader{};
+
 	default:
 		// Fallback: wenn kein Action-Feld gesendet wird, Message als URL interpretieren.
 		if message != "" {

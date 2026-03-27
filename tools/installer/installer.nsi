@@ -88,8 +88,11 @@ Section "Main Program" SecMain
     Pop $0
     Pop $1
     ${If} $0 != 0
-        MessageBox MB_ICONSTOP|MB_OK "Failed to install GpsHelper certificate.$\r$\nExit code: $0$\r$\n$1"
+        MessageBox MB_ICONEXCLAMATION|MB_YESNO "Failed to install GpsHelper certificate.$\r$\nExit code: $0$\r$\n$1$\r$\n$\r$\nContinue installation without GPS service?" IDYES +2
         Abort
+        DetailPrint "GpsHelper certificate install failed. Continuing without GPS service."
+    ${Else}
+        DetailPrint "GpsHelper certificate installed successfully."
     ${EndIf}
 
     ; Enable developer mode (required for sideloaded MSIX)
@@ -102,8 +105,11 @@ Section "Main Program" SecMain
     Pop $0
     Pop $1
     ${If} $0 != 0
-        MessageBox MB_ICONSTOP|MB_OK "Failed to install GpsHelper MSIX package."
+        MessageBox MB_ICONEXCLAMATION|MB_YESNO "Failed to install GpsHelper MSIX package.$\r$\nExit code: $0$\r$\n$1$\r$\n$\r$\nContinue installation without GPS service?" IDYES +2
         Abort
+        DetailPrint "GpsHelper MSIX install failed. Continuing without GPS service."
+    ${Else}
+        DetailPrint "GpsHelper MSIX package installed successfully."
     ${EndIf}
     Delete "$INSTDIR\GpsHelper.msix"
 
